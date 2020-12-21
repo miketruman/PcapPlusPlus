@@ -25,6 +25,8 @@ PTF_TEST_CASE(SctpPacketWithData5Test)
 	PTF_ASSERT_NOT_NULL(sctpLayer);
 	PTF_ASSERT_EQUAL(sctpLayer->getSctpHeader()->portDst, htobe16(80), u16);
 	PTF_ASSERT_EQUAL(sctpLayer->getSctpHeader()->portSrc, htobe16(32836), u16);
+	PTF_ASSERT_EQUAL(sctpLayer->getSctpHeader()->verificationTag, htobe32(3530211813), u32);
+	PTF_ASSERT_EQUAL(sctpLayer->getSctpHeader()->checksum, htobe32(1894079308), u32);
 /*
 
 	PTF_ASSERT_EQUAL(sctpLayer->getTcpHeader()->sequenceNumber, htobe32(0xbeab364a), u32);
