@@ -335,7 +335,7 @@ std::string SctpLayer::toString() const
 		result += "[ACK], ";
 
 	std::ostringstream srcPortStream;
-	srcPortStream << be16toh(hdr->portSrc);
+	srcPortStream << be16toh(hdr->portSrc);isDataValid
 	std::ostringstream dstPortStream;
 	dstPortStream << be16toh(hdr->portDst);
 	result += "Src port: " + srcPortStream.str() + ", Dst port: " + dstPortStream.str();

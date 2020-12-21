@@ -3,6 +3,7 @@
 
 #include "Layer.h"
 #include "TLVData.h"
+//#include "SCTPChunk.h"
 #include <string.h>
 
 /// @file
@@ -216,8 +217,6 @@ namespace pcpp
 	{
 		const sctphdr* hdr = reinterpret_cast<const sctphdr*>(data);
 		return dataLen >= sizeof(sctphdr);
-//			&& hdr->dataOffset >= 5 /* the minimum SCTP header size */
-//			&& dataLen >= hdr->dataOffset * sizeof(uint32_t);
 	}
 
 } // namespace pcpp
