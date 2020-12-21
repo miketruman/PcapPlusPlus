@@ -220,6 +220,7 @@ int main(int argc, char* argv[])
 
 	PTF_RUN_TEST(SSHParsingTest, "ssh");
 	PTF_RUN_TEST(SSHMalformedParsingTest, "ssh");
+	PTF_RUN_TEST(SctpPacketWithData5Test, "ssh");
 
 	PTF_END_RUNNING_TESTS;
 }

@@ -143,3 +143,6 @@ PTF_TEST_CASE(BgpLayerEditTest);
 // Implemented in SSHTests.cpp
 PTF_TEST_CASE(SSHParsingTest);
 PTF_TEST_CASE(SSHMalformedParsingTest);
+
+// Implemented in SctpTests.cpp
+PTF_TEST_CASE(SctpPacketWithData5Test);

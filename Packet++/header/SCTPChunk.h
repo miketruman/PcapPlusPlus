@@ -13,13 +13,6 @@
  */
 namespace pcpp
 {
-	/**
-	 * @class SCTPChunk
-	 * A wrapper class for a Type-Length-Value (TLV) record. This class does not create or modify TLV records, but rather
-	 * serves as a wrapper and provides useful methods for retrieving data from them. This class has several abstract methods
-	 * that should be implemented in derived classes. These methods are for record length value calculation (the 'L' in TLV)
-	 * which is implemented differently in different protocols
-	 */
 	class SCTPChunk
 	{
 	protected:
