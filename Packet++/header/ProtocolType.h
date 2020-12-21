@@ -53,6 +53,11 @@ namespace pcpp
 	const ProtocolType UDP = 0x10;
 
 	/**
+	 * SCTP protocol
+	 */
+	const ProtocolType SCTP = 0x12;
+
+	/**
 	 * HTTP request protocol
 	 */
 	const ProtocolType HTTPRequest = 0x20;

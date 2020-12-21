@@ -5,6 +5,7 @@
 #include "PayloadLayer.h"
 #include "UdpLayer.h"
 #include "TcpLayer.h"
+#include "SctpLayer.h"
 #include "IcmpLayer.h"
 #include "GreLayer.h"
 #include "IgmpLayer.h"
@@ -268,6 +269,11 @@ void IPv4Layer::parseNextLayer()
 	case PACKETPP_IPPROTO_TCP:
 		m_NextLayer = TcpLayer::isDataValid(payload, payloadLen)
 			? static_cast<Layer*>(new TcpLayer(payload, payloadLen, this, m_Packet))
+			: static_cast<Layer*>(new PayloadLayer(payload, payloadLen, this, m_Packet));
+		break;
+	case PACKETPP_IPPROTO_SCTP:
+		m_NextLayer = SctpLayer::isDataValid(payload, payloadLen)
+			? static_cast<Layer*>(new SctpLayer(payload, payloadLen, this, m_Packet))
 			: static_cast<Layer*>(new PayloadLayer(payload, payloadLen, this, m_Packet));
 		break;
 	case PACKETPP_IPPROTO_ICMP:

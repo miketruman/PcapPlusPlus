@@ -21,10 +21,10 @@ namespace pcpp
 #define SCTPOPT_DUMMY 0xff
 
 /// ~~~~~~~~~~~~~~~~
-/// SctpOptionBuilder
+/// SctpChunkBuilder
 /// ~~~~~~~~~~~~~~~~
-
-SctpOptionBuilder::SctpOptionBuilder(NopEolOptionTypes optionType)
+/*
+SctpChunkBuilder::SctpChunkBuilder(NopEolOptionTypes optionType)
 {
 	switch (optionType)
 	{
@@ -37,8 +37,9 @@ SctpOptionBuilder::SctpOptionBuilder(NopEolOptionTypes optionType)
 		break;
 	}
 }
-
-SctpOption SctpOptionBuilder::build() const
+*/
+/*
+SctpChunk SctpChunkBuilder::build() const
 {
 	size_t optionSize = m_RecValueLen + 2*sizeof(uint8_t);
 
@@ -47,7 +48,7 @@ SctpOption SctpOptionBuilder::build() const
 		if (m_RecValueLen != 0)
 		{
 			LOG_ERROR("SCTP NOP and SCTP EOL options are 1-byte long and don't have option value. Tried to set option value of size %d", m_RecValueLen);
-			return SctpOption(NULL);
+			return SctpChunk(NULL);
 		}
 
 		optionSize = 1;
@@ -63,127 +64,60 @@ SctpOption SctpOptionBuilder::build() const
 			memcpy(recordBuffer+2, m_RecValue, m_RecValueLen);
 	}
 
-	return SctpOption(recordBuffer);
+	return SctpChunk(recordBuffer);
 }
-
+*/
 
 
 /// ~~~~~~~~
 /// SctpLayer
 /// ~~~~~~~~
 
-
-SctpOption SctpLayer::getSctpOption(SctpOptionType option) const
+/*
+SctpChunk SctpLayer::getSctpChunk(SctpChunkType option) const
 {
 	return m_OptionReader.getTLVRecord((uint8_t)option, getOptionsBasePtr(), getHeaderLen() - sizeof(sctphdr));
-}
+}*/
 
-SctpOption SctpLayer::getFirstSctpOption() const
+/*
+SctpChunk SctpLayer::getFirstSctpChunk() const
 {
-	return m_OptionReader.getFirstTLVRecord(getOptionsBasePtr(), getHeaderLen() - sizeof(sctphdr));
+	//return m_OptionReader.getFirstTLVRecord(getOptionsBasePtr(), getHeaderLen() - sizeof(sctphdr));
 }
+*/
 
-SctpOption SctpLayer::getNextSctpOption(SctpOption& sctpOption) const
+/*
+SctpChunk SctpLayer::getNextSctpChunk(SctpChunk& sctpChunk) const
 {
-	SctpOption nextOpt = m_OptionReader.getNextTLVRecord(sctpOption, getOptionsBasePtr(), getHeaderLen() - sizeof(sctphdr));
+	SctpChunk nextOpt = m_OptionReader.getNextTLVRecord(sctpChunk, getOptionsBasePtr(), getHeaderLen() - sizeof(sctphdr));
 	if (nextOpt.isNotNull() && nextOpt.getType() == SCTPOPT_DUMMY)
-		return SctpOption(NULL);
+		return SctpChunk(NULL);
 
-	return nextOpt;
+	return nextOpt;	
+}
+*/
+
+size_t SctpLayer::getSctpChunkCount() const
+{
+//	return m_OptionReader.getTLVRecordCount(getOptionsBasePtr(), getHeaderLen() - sizeof(sctphdr));
 }
 
-size_t SctpLayer::getSctpOptionCount() const
+
+/*
+SctpChunk SctpLayer::addSctpChunkAt(const SctpChunkBuilder& optionBuilder, int offset)
 {
-	return m_OptionReader.getTLVRecordCount(getOptionsBasePtr(), getHeaderLen() - sizeof(sctphdr));
-}
-
-SctpOption SctpLayer::addSctpOption(const SctpOptionBuilder& optionBuilder)
-{
-	return addSctpOptionAt(optionBuilder, getHeaderLen()-m_NumOfTrailingBytes);
-}
-
-SctpOption SctpLayer::addSctpOptionAfter(const SctpOptionBuilder& optionBuilder, SctpOptionType prevOptionType)
-{
-	int offset = 0;
-
-	if (prevOptionType == SCTPOPT_Unknown)
-	{
-		offset = sizeof(sctphdr);
-	}
-	else
-	{
-		SctpOption prevOpt = getSctpOption(prevOptionType);
-		if (prevOpt.isNull())
-		{
-			LOG_ERROR("Previous option of type %d not found, cannot add a new SCTP option", (int)prevOptionType);
-			return SctpOption(NULL);
-		}
-
-		offset = prevOpt.getRecordBasePtr() + prevOpt.getTotalSize() - m_Data;
-	}
-
-	return addSctpOptionAt(optionBuilder, offset);
-}
-
-bool SctpLayer::removeSctpOption(SctpOptionType optionType)
-{
-	SctpOption opt = getSctpOption(optionType);
-	if (opt.isNull())
-	{
-		return false;
-	}
-
-	// calculate total SCTP option size
-	SctpOption curOpt = getFirstSctpOption();
-	size_t totalOptSize = 0;
-	while (!curOpt.isNull())
-	{
-		totalOptSize += curOpt.getTotalSize();
-		curOpt = getNextSctpOption(curOpt);
-	}
-	totalOptSize -= opt.getTotalSize();
-
-
-	int offset = opt.getRecordBasePtr() - m_Data;
-
-	if (!shortenLayer(offset, opt.getTotalSize()))
-	{
-		return false;
-	}
-
-	adjustSctpOptionTrailer(totalOptSize);
-
-	m_OptionReader.changeTLVRecordCount(-1);
-
-	return true;
-}
-
-bool SctpLayer::removeAllSctpOptions()
-{
-	int offset = sizeof(sctphdr);
-
-	if (!shortenLayer(offset, getHeaderLen()-offset))
-		return false;
-
-	getSctpHeader()->dataOffset = sizeof(sctphdr)/4;
-	m_NumOfTrailingBytes = 0;
-	m_OptionReader.changeTLVRecordCount(0-getSctpOptionCount());
-	return true;
-}
-
-SctpOption SctpLayer::addSctpOptionAt(const SctpOptionBuilder& optionBuilder, int offset)
-{
-	SctpOption newOption = optionBuilder.build();
+	
+	SctpChunk newOption = optionBuilder.build();
 	if (newOption.isNull())
 		return newOption;
 
 	// calculate total SCTP option size
-	SctpOption curOpt = getFirstSctpOption();
+	SctpChunk curOpt = getFirstSctpChunk();
 	size_t totalOptSize = 0;
 	while (!curOpt.isNull())
 	{
 		totalOptSize += curOpt.getTotalSize();
-		curOpt = getNextSctpOption(curOpt);
+		curOpt = getNextSctpChunk(curOpt);
 	}
 	totalOptSize += newOption.getTotalSize();
 
@@ -193,24 +127,27 @@ SctpOption SctpLayer::addSctpOptionAt(const SctpOptionBuilder& optionBuilder, in
 	{
 		LOG_ERROR("Could not extend SctpLayer in [%d] bytes", (int)sizeToExtend);
 		newOption.purgeRecordData();
-		return SctpOption(NULL);
+		return SctpChunk(NULL);
 	}
 
 	memcpy(m_Data + offset, newOption.getRecordBasePtr(), newOption.getTotalSize());
 
 	newOption.purgeRecordData();
 
-	adjustSctpOptionTrailer(totalOptSize);
+	adjustSctpChunkTrailer(totalOptSize);
 
 	m_OptionReader.changeTLVRecordCount(1);
 
 	uint8_t* newOptPtr = m_Data + offset;
 
-	return SctpOption(newOptPtr);
+	return SctpChunk(newOptPtr);
+	
 }
+*/
 
-void SctpLayer::adjustSctpOptionTrailer(size_t totalOptSize)
+void SctpLayer::adjustSctpChunkTrailer(size_t totalOptSize)
 {
+	/*
 	int newNumberOfTrailingBytes = 0;
 	while ((totalOptSize + newNumberOfTrailingBytes) % 4 != 0)
 		newNumberOfTrailingBytes++;
@@ -226,10 +163,12 @@ void SctpLayer::adjustSctpOptionTrailer(size_t totalOptSize)
 		m_Data[sizeof(sctphdr) + totalOptSize + i] = SCTPOPT_DUMMY;
 
 	getSctpHeader()->dataOffset = (sizeof(sctphdr) + totalOptSize + m_NumOfTrailingBytes)/4;
+	*/
 }
 
 uint16_t SctpLayer::calculateChecksum(bool writeResultToPacket)
 {
+	/*
 	sctphdr* sctpHdr = getSctpHeader();
 	uint16_t checksumRes = 0;
 	uint16_t currChecksumValue = sctpHdr->headerChecksum;
@@ -280,6 +219,7 @@ uint16_t SctpLayer::calculateChecksum(bool writeResultToPacket)
 		sctpHdr->headerChecksum = currChecksumValue;
 
 	return checksumRes;
+	*/
 }
 
 void SctpLayer::initLayer()
@@ -289,7 +229,9 @@ void SctpLayer::initLayer()
 	memset(m_Data, 0, m_DataLen);
 	m_Protocol = SCTP;
 	m_NumOfTrailingBytes = 0;
+	/*
 	getSctpHeader()->dataOffset = sizeof(sctphdr)/4;
+	*/
 }
 
 SctpLayer::SctpLayer(uint8_t* data, size_t dataLen, Layer* prevLayer, Packet* packet) : Layer(data, dataLen, prevLayer, packet)
@@ -303,17 +245,10 @@ SctpLayer::SctpLayer()
 	initLayer();
 }
 
-SctpLayer::SctpLayer(uint16_t portSrc, uint16_t portDst)
-{
-	initLayer();
-	getSctpHeader()->portDst = htobe16(portDst);
-	getSctpHeader()->portSrc = htobe16(portSrc);
-}
-
 void SctpLayer::copyLayerData(const SctpLayer& other)
 {
-	m_OptionReader = other.m_OptionReader;
-	m_NumOfTrailingBytes = other.m_NumOfTrailingBytes;
+//	m_OptionReader = other.m_OptionReader;
+//	m_NumOfTrailingBytes = other.m_NumOfTrailingBytes;
 }
 
 SctpLayer::SctpLayer(const SctpLayer& other) : Layer(other)
@@ -332,6 +267,7 @@ SctpLayer& SctpLayer::operator=(const SctpLayer& other)
 
 void SctpLayer::parseNextLayer()
 {
+	
 	size_t headerLen = getHeaderLen();
 	if (m_DataLen <= headerLen)
 		return;
@@ -341,7 +277,7 @@ void SctpLayer::parseNextLayer()
 	sctphdr* sctpHder = getSctpHeader();
 	uint16_t portDst = be16toh(sctpHder->portDst);
 	uint16_t portSrc = be16toh(sctpHder->portSrc);
-
+/*
 	if (HttpMessage::isHttpPort(portDst) && HttpRequestFirstLine::parseMethod((char*)payload, payloadLen) != HttpRequestLayer::HttpMethodUnknown)
 		m_NextLayer = new HttpRequestLayer(payload, payloadLen, this, m_Packet);
 	else if (HttpMessage::isHttpPort(portSrc) && HttpResponseFirstLine::parseStatusCode((char*)payload, payloadLen) != HttpResponseLayer::HttpStatusCodeUnknown)
@@ -363,20 +299,24 @@ void SctpLayer::parseNextLayer()
 		m_NextLayer = SSHLayer::createSSHMessage(payload, payloadLen, this, m_Packet);
 	else
 		m_NextLayer = new PayloadLayer(payload, payloadLen, this, m_Packet);
+		*/
 }
 
 void SctpLayer::computeCalculateFields()
 {
+	/*
 	sctphdr* sctpHdr = getSctpHeader();
 
 	sctpHdr->dataOffset = getHeaderLen() >> 2;
-	calculateChecksum(true);
+	calculateChecksum(true);*/
 }
 
 std::string SctpLayer::toString() const
 {
-	sctphdr* hdr = getSctpHeader();
 	std::string result = "SCTP Layer, ";
+	/*
+	sctphdr* hdr = getSctpHeader();
+	
 	if (hdr->synFlag)
 	{
 		if (hdr->ackFlag)
@@ -399,7 +339,7 @@ std::string SctpLayer::toString() const
 	std::ostringstream dstPortStream;
 	dstPortStream << be16toh(hdr->portDst);
 	result += "Src port: " + srcPortStream.str() + ", Dst port: " + dstPortStream.str();
-
+*/
 	return result;
 }
 

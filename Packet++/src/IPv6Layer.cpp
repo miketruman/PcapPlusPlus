@@ -5,6 +5,7 @@
 #include "PayloadLayer.h"
 #include "UdpLayer.h"
 #include "TcpLayer.h"
+#include "SctpLayer.h"
 #include "GreLayer.h"
 #include "Packet.h"
 #include "PacketUtils.h"
@@ -225,6 +226,11 @@ void IPv6Layer::parseNextLayer()
 			? static_cast<Layer*>(new TcpLayer(payload, payloadLen, this, m_Packet))
 			: static_cast<Layer*>(new PayloadLayer(payload, payloadLen, this, m_Packet));
 		break;
+	case PACKETPP_IPPROTO_SCTP:
+		m_NextLayer = SctpLayer::isDataValid(payload, payloadLen)
+			? static_cast<Layer*>(new SctpLayer(payload, payloadLen, this, m_Packet))
+			: static_cast<Layer*>(new PayloadLayer(payload, payloadLen, this, m_Packet));
+		break;		
 	case PACKETPP_IPPROTO_IPIP:
 	{
 		uint8_t ipVersion = *payload >> 4;
